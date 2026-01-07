@@ -2,6 +2,7 @@
 
 This repository presents implementations of optimization algorithms commonly used in machine learning, together with their theoretical assumptions and convergence guarantees.
 
+
 ## Problem Setting
 
 We consider optimization problems of the form
@@ -10,25 +11,38 @@ $$
 \min_{x \in \mathcal{C}} F(x),
 $$
 
-where $\mathcal{C} \subseteq \mathbb{R}^d$ is a convex set and $F : \mathbb{R}^d \to \mathbb{R}$.
+where $\mathcal{C} \subseteq \mathbb{R}^d$ is a convex set and
+$F : \mathbb{R}^d \to \mathbb{R}$.
+
 
 ## Gradient Descent (GD)
 
-### Main idea
+**Main idea**
 
-First-order method using the full gradient to minimize a smooth objective.
+First-order method using the full gradient of the objective.
 
-### Update rule
+**Problem**
+
+$$
+\min_{x \in \mathcal{C}} F(x)
+$$
+
+**Update rule**
 
 $$
 x_{k+1} = x_k - \rho \nabla F(x_k).
 $$
 
-### Assumptions and convergence
+**Assumptions**
 
-#### Convex, $L$-smooth
+* $F$ differentiable
+* $F$ convex or $\mu$-strongly convex
+* $\nabla F$ is $L$-Lipschitz
 
-If $F$ is convex, differentiable, and $L$-smooth, with step size $\rho \le 1/L$:
+**Convergence**
+
+**Convex, $L$-smooth**
+If $\rho \le 1/L$:
 
 $$
 F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k}\right),
@@ -36,18 +50,17 @@ F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k}\right),
 k = \mathcal{O}\left(\frac{1}{\varepsilon}\right).
 $$
 
-#### $\mu$-strongly convex, $L$-smooth
-
-If $F$ is $\mu$-strongly convex and $L$-smooth, with $\rho = 1/L$:
+**$\mu$-strongly convex, $L$-smooth**
+With $\rho = 1/L$:
 
 $$
 \lVert x_k - x^{ * } \rVert^2
 \le
 \left(1 - \frac{\mu}{L}\right)^k
-\lVert x_0 - x^{ * } \rVert^2.
+\lVert x_0 - x^{ * } \rVert^2,
 $$
 
-Linear (exponential) convergence, and
+and
 
 $$
 k = \mathcal{O}\left(\log \frac{1}{\varepsilon}\right),
@@ -55,23 +68,33 @@ k = \mathcal{O}\left(\log \frac{1}{\varepsilon}\right),
 \kappa = \frac{L}{\mu}.
 $$
 
+
 ## Proximal Gradient Descent (PGD)
 
-### Problem
+**Main idea**
+
+Handle non-smooth terms via proximal operators.
+
+**Problem**
 
 $$
 F(x) = f(x) + g(x),
 $$
 
-where $f$ is convex and $L$-smooth, and $g$ is convex (possibly non-smooth).
+with $f$ smooth and $g$ convex.
 
-### Update rule
+**Update rule**
 
 $$
-x_{k+1} = \mathrm{prox}_{\rho g}\left(x_k - \rho \nabla f(x_k)\right).
+x_{k+1} =\mathrm{prox}_{\rho g}\left(x_k - \rho \nabla f(x_k)\right).
 $$
 
-### Convergence
+**Assumptions**
+
+* $f$ convex and $L$-smooth
+* $g$ convex (possibly non-smooth)
+
+**Convergence**
 
 If $\rho \le 1/L$:
 
@@ -79,15 +102,20 @@ $$
 F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k}\right).
 $$
 
+
 ## Accelerated Gradient Descent (AGD)
 
-### Main idea
+**Main idea**
 
-Momentum-based method combining current and past gradients.
+Use momentum to accelerate first-order methods.
 
-### Update rule
+**Problem**
 
-(Equivalent formulations exist; e.g. Nesterov’s scheme)
+$$
+\min_x F(x)
+$$
+
+**Update rule** (Nesterov)
 
 $$
 \begin{aligned}
@@ -96,164 +124,180 @@ x_{k+1} &= y_k - \frac{1}{L} \nabla F(y_k).
 \end{aligned}
 $$
 
-### Assumptions and convergence
+**Assumptions**
 
-If $F$ is convex and $L$-smooth:
+* $F$ convex and $L$-smooth
+
+**Convergence**
 
 $$
-F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k^2}\right),
+F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k^2}\right).
 $$
 
-which is optimal among first-order methods.
 
 ## Stochastic Gradient Descent (SGD)
 
-### Problem
+**Main idea**
+
+Approximate gradients using random samples.
+
+**Problem**
 
 $$
 F(x) = \frac{1}{n} \sum_{i=1}^n f_i(x).
 $$
 
-### Update rule
+**Update rule**
 
 $$
 x_{k+1} = x_k - \rho_k \nabla f_{i_k}(x_k),
 $$
 
-where $i_k$ is sampled uniformly from ${1,\dots,n}$.
+with $i_k \sim \text{Unif}{1,\dots,n}$.
 
-### Fixed step size
+**Assumptions**
 
-#### Strongly convex + bounded noise
+* Unbiased stochastic gradients
+* Bounded variance
+* Smoothness of $f_i$
 
-If $F$ is $\mu$-strongly convex and gradients are unbiased with bounded variance, $\rho \le 1/\mu$:
+**Convergence**
 
-$$
-\mathbb{E}\lVert x_k - x^{ * } \rVert^2 =\mathcal{O}\left((1 - \rho \mu)^k\right),
-$$
-
-with a bias of order $\mathcal{O}(\rho)$.
-
-#### Smooth component functions
-
-If each $f_i$ is $L_i$-smooth and $\rho \le 1/(2L_{\max})$, convergence is linear up to a noise-dependent neighborhood.
-
-### Decreasing step size
-
-If $\rho_k = \frac{p}{\sqrt{k+1}}$, with $p < 1/(4L_{\max})$:
+**Fixed step size, $\mu$-strongly convex**
 
 $$
-\mathbb{E}(F(x_k) - F(x^{ * })) = \mathcal{O}\left(\frac{1}{k}\right),
+\mathbb{E}\lVert x_k - x^{ * } \rVert^2 = \mathcal{O}\left((1 - \rho \mu)^k\right),
 $$
 
-with exact convergence and reduced variance.
+with bias $\mathcal{O}(\rho)$.
+
+**Decreasing step size**
+If $\rho_k = \frac{p}{\sqrt{k+1}}$:
+
+$$
+\mathbb{E}[F(x_k) - F(x^{ * })] =\mathcal{O}\left(\frac{1}{k}\right).
+$$
+
 
 ## Newton’s Method
 
-### Main idea
+**Main idea**
 
-Second-order method using curvature information.
+Exploit second-order curvature information.
 
-### Update rule
+**Problem**
+
+$$
+\min_x f(x)
+$$
+
+**Update rule**
 
 $$
 x_{k+1} = x_k - \nabla^2 f(x_k)^{-1} \nabla f(x_k).
 $$
 
-### Assumptions
+**Assumptions**
 
 * $f \in C^2$
-* $x^{ * }$ local minimizer
 * $\nabla^2 f(x^{ * }) \succ 0$
-* $x_0$ sufficiently close to $x^{ * }$
+* $x_0$ close to $x^{ * }$
 
-### Properties
+**Convergence**
 
 * Local quadratic convergence
 * One-step convergence for quadratic objectives
-* Cost: $\mathcal{O}(d^3)$ per iteration
+* Cost: $\mathcal{O}(d^3)$
+
 
 ## Quasi-Newton Methods
 
 ### DFP
 
-#### Update rule
+**Main idea**
+Approximate inverse Hessian using secant conditions.
 
-Rank-2 update approximating the inverse Hessian and satisfying the secant condition.
+**Update rule**
+Rank-2 update of the inverse Hessian approximation.
 
-#### Properties
+**Assumptions**
+Smooth objective + line search.
 
-* Smooth objective + line search
-* Local superlinear convergence
-* Cost: $\mathcal{O}(d^2)$
+**Convergence**
+Local superlinear, cost $\mathcal{O}(d^2)$.
+
 
 ### BFGS
 
-#### Update rule
+**Main idea**
+Numerically stable quasi-Newton method.
 
-Improved rank-2 update with better numerical stability.
+**Update rule**
+Improved rank-2 update.
 
-#### Properties
+**Assumptions**
+Smooth objective + Wolfe line search.
 
-* Robust with inexact line search
-* Local superlinear convergence
-* Cost: $\mathcal{O}(d^2)$
+**Convergence**
+Local superlinear, cost $\mathcal{O}(d^2)$.
+
 
 ### L-BFGS
 
-#### Update rule
+**Main idea**
+Memory-efficient quasi-Newton method.
 
-Limited-memory BFGS using the last $m \ll d$ curvature pairs.
+**Update rule**
+BFGS using last $m \ll d$ curvature pairs.
 
-#### Properties
+**Convergence** / Cost
+Scalable, $\mathcal{O}(md)$ per iteration.
 
-* Scalable to large dimensions
-* No finite-step property
-* Cost: $\mathcal{O}(md)$
 
 ## Conjugate Gradient (CG)
 
-### Problem
+**Main idea**
 
-Solve
+Solve linear systems using conjugate directions.
+
+**Problem**
 
 $$
 Ax = b, \quad A \succ 0.
 $$
 
-### Update rule
+**Update rule**
 
-Iterative construction of $A$-conjugate directions using gradient information.
+Iteratively construct $A$-conjugate search directions.
 
-### Properties
+**Convergence**
 
-* Matrix-free
-* Exact solution in at most $d$ steps (exact arithmetic)
+Exact solution in at most $d$ steps (exact arithmetic).
+
 
 ## Coordinate Descent Methods
 
 ### Exact Coordinate Descent
 
-#### Update rule
+**Main idea**
+Optimize one coordinate at a time.
 
-At iteration $k$, minimize $f$ exactly with respect to one coordinate.
+**Update rule**
+Exact minimization along a single coordinate.
 
-#### Assumptions
+**Assumptions**
+$f$ smooth and strictly convex.
 
-* $f$ continuously differentiable
-* strictly convex
+**Convergence**
+Global convergence to $x^{ * }$.
 
-#### Convergence
-
-Global convergence to the unique minimizer $x^{ * }$.
 
 ### Randomized Coordinate Descent
 
-### Update rule
+**Update rule**
+Randomly select and update one coordinate.
 
-Select coordinate $i_{k+1}$ uniformly and update only that coordinate.
-
-### Convergence
+**Convergence**
 
 $$
 F(x_k) - F(x^{ * }) =
@@ -263,21 +307,26 @@ F(x_k) - F(x^{ * }) =
 \end{cases}
 $$
 
+
 ## Proximal Coordinate Descent
 
-### Problem
+**Main idea**
+
+Combine coordinate descent with proximal operators.
+
+**Problem**
 
 $$
 F(x) = f(x) + g(x),
 $$
 
-with $f$ smooth and $g$ separable.
+with separable $g$.
 
-### Update rule
+**Update rule**
 
-Apply a proximal step on a single randomly selected coordinate.
+Apply a proximal update on a single randomly selected coordinate.
 
-### Convergence
+**Convergence**
 
 $$
 \mathcal{O}\left(\frac{1}{k}\right)
@@ -286,4 +335,6 @@ $$
 \mathcal{O}\left(\left(1 - \frac{\mu}{nL_{\max}}\right)^k\right)
 \quad \text{(strongly convex)}.
 $$
+
+
 
