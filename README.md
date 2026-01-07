@@ -270,6 +270,7 @@ $$
 $$
 F(x) = f(x) + g(x),
 $$
+
 with $f$ smooth and $g$ separable.
 
 ### Update rule
