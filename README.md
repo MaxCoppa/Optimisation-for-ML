@@ -1,5 +1,6 @@
-# Optimisation- for- ML
-This repo presents the implementation of different algorithms to solve different optimisation problem.
+# Optimization for Machine Learning
+
+This repository presents implementations of optimization algorithms commonly used in machine learning, together with their theoretical assumptions and convergence guarantees.
 
 ## Problem Setting
 
@@ -11,12 +12,11 @@ $$
 
 where $\mathcal{C} \subseteq \mathbb{R}^d$ is a convex set and $F : \mathbb{R}^d \to \mathbb{R}$.
 
-
 ## Gradient Descent (GD)
 
 ### Main idea
 
-Iterative first-order method using the full gradient to minimize a smooth objective.
+First-order method using the full gradient to minimize a smooth objective.
 
 ### Update rule
 
@@ -26,44 +26,34 @@ $$
 
 ### Assumptions and convergence
 
-#### Convex, $L$-smooth function
+#### Convex, $L$-smooth
 
-If $F$ is convex, differentiable, and $L$-smooth, then for a fixed step size
-
-$$
-\rho \le \frac{1}{L},
-$$
-
-gradient descent satisfies
+If $F$ is convex, differentiable, and $L$-smooth, with step size $\rho \le 1/L$:
 
 $$
-F(x_k) - F(x^*) = \mathcal{O}\left(\frac{1}{k}\right),
-$$
-
-and to reach precision $\varepsilon$:
-
-$$
+F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k}\right),
+\qquad
 k = \mathcal{O}\left(\frac{1}{\varepsilon}\right).
 $$
 
-#### $\mu$-strongly convex, $L$-smooth function
+#### $\mu$-strongly convex, $L$-smooth
 
-If $F$ is $\mu$-strongly convex and $L$-smooth, with step size $\rho = 1/L$, then
+If $F$ is $\mu$-strongly convex and $L$-smooth, with $\rho = 1/L$:
 
 $$
-|x_k - x^{ * }|^2  \le (1 - \mu/L)^k \lVert x_0 - x^{ * } \rVert^2
+\lVert x_k - x^{ * } \rVert^2
+\le
+\left(1 - \frac{\mu}{L}\right)^k
+\lVert x_0 - x^{ * } \rVert^2.
 $$
 
-
-i.e. **linear (exponential) convergence**.
-To reach precision $\varepsilon$:
+Linear (exponential) convergence, and
 
 $$
 k = \mathcal{O}\left(\log \frac{1}{\varepsilon}\right),
+\qquad
+\kappa = \frac{L}{\mu}.
 $$
-
-with condition number $\kappa = L / \mu \ge 1$.
-
 
 ## Proximal Gradient Descent (PGD)
 
@@ -73,10 +63,7 @@ $$
 F(x) = f(x) + g(x),
 $$
 
-where:
-
-* $f$ is convex and $L$-smooth,
-* $g$ is convex (possibly non-smooth).
+where $f$ is convex and $L$-smooth, and $g$ is convex (possibly non-smooth).
 
 ### Update rule
 
@@ -86,33 +73,38 @@ $$
 
 ### Convergence
 
-If $\rho \le 1/L$, then
+If $\rho \le 1/L$:
 
 $$
-F(x_k) - F(x^*) = \mathcal{O}\left(\frac{1}{k}\right).
+F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k}\right).
 $$
-
 
 ## Accelerated Gradient Descent (AGD)
 
 ### Main idea
 
-Use **momentum** by combining current and previous gradients to accelerate convergence.
+Momentum-based method combining current and past gradients.
 
-### Assumptions
+### Update rule
 
-$F$ convex, differentiable, and $L$-smooth.
-
-### Convergence
-
-With step size $\rho = 1/L$,
+(Equivalent formulations exist; e.g. Nesterov’s scheme)
 
 $$
-F(x_k) - F(x^*) = \mathcal{O}\left(\frac{1}{k^2}\right),
+\begin{aligned}
+y_k &= x_k + \beta_k (x_k - x_{k-1}), \
+x_{k+1} &= y_k - \frac{1}{L} \nabla F(y_k).
+\end{aligned}
 $$
 
-which is optimal among first-order methods for smooth convex optimization.
+### Assumptions and convergence
 
+If $F$ is convex and $L$-smooth:
+
+$$
+F(x_k) - F(x^{ * }) = \mathcal{O}\left(\frac{1}{k^2}\right),
+$$
+
+which is optimal among first-order methods.
 
 ## Stochastic Gradient Descent (SGD)
 
@@ -122,54 +114,45 @@ $$
 F(x) = \frac{1}{n} \sum_{i=1}^n f_i(x).
 $$
 
+### Update rule
+
+$$
+x_{k+1} = x_k - \rho_k \nabla f_{i_k}(x_k),
+$$
+
+where $i_k$ is sampled uniformly from ${1,\dots,n}$.
 
 ### Fixed step size
 
-#### Strongly convex case + bounded gradient noise
+#### Strongly convex + bounded noise
 
-If:
-
-* $F$ is $\mu$-strongly convex,
-* unbiased stochastic gradients with bounded variance,
-* step size $\rho \le \frac{1}{\mu}$,
-
-then SGD exhibits **linear convergence to a neighborhood** of $x^*$:
+If $F$ is $\mu$-strongly convex and gradients are unbiased with bounded variance, $\rho \le 1/\mu$:
 
 $$
-\mathbb{E}|x_k - x^*|^2 = \mathcal{O}\left((1 - \rho \mu)^k\right),
+\mathbb{E}\lVert x_k - x^{ * } \rVert^2 =\mathcal{O}\left((1 - \rho \mu)^k\right),
 $$
 
-with bias $O(\rho)$.
+with a bias of order $\mathcal{O}(\rho)$.
 
 #### Smooth component functions
 
-If:
-
-* $F$ is $\mu$-strongly convex,
-* each $f_i$ is $L_i$-smooth, $L_{\max} = \max_i L_i$,
-* $\rho \le \frac{1}{2L_{\max}}$,
-
-then SGD converges linearly up to a bias depending only on the gradient noise at $x^*$.
-
+If each $f_i$ is $L_i$-smooth and $\rho \le 1/(2L_{\max})$, convergence is linear up to a noise-dependent neighborhood.
 
 ### Decreasing step size
 
-If:
+If $\rho_k = \frac{p}{\sqrt{k+1}}$, with $p < 1/(4L_{\max})$:
 
-* $F$ is $\mu$-strongly convex,
-* $f_i$ are $L_i$-smooth,
-* step size $\rho_k = \frac{p}{\sqrt{k+1}}, \quad p < \frac{1}{4L_{\max}}$,
+$$
+\mathbb{E}(F(x_k) - F(x^{ * })) = \mathcal{O}\left(\frac{1}{k}\right),
+$$
 
-then:
-
-* exact convergence to $x^*$,
-* sublinear rate $\mathbb{E}[F(x_k) - F(x^*)] = \mathcal{O}\left(\frac{1}{k}\right)$,
-
-* reduced noise for large $k$,
-* per-iteration cost $O(d)$.
-
+with exact convergence and reduced variance.
 
 ## Newton’s Method
+
+### Main idea
+
+Second-order method using curvature information.
 
 ### Update rule
 
@@ -177,132 +160,129 @@ $$
 x_{k+1} = x_k - \nabla^2 f(x_k)^{-1} \nabla f(x_k).
 $$
 
-### Assumptions (local convergence)
+### Assumptions
 
-* $f \in C^2$,
-* $x^*$ is a local minimizer,
-* $\nabla^2 f(x^*) \succ 0$,
-* $x_0$ sufficiently close to $x^*$.
+* $f \in C^2$
+* $x^{ * }$ local minimizer
+* $\nabla^2 f(x^{ * }) \succ 0$
+* $x_0$ sufficiently close to $x^{ * }$
 
 ### Properties
 
-* **Local quadratic convergence**
-* For quadratic functions $(f(x)=\tfrac12 x^\top A x)$ with $A \succ 0$: convergence in **one iteration**
-* Cost: $O(d^3)$ per iteration
-
-### Remarks
-
-Extremely fast near the optimum, but impractical for large-scale problems; often combined with line search or regularization.
-
+* Local quadratic convergence
+* One-step convergence for quadratic objectives
+* Cost: $\mathcal{O}(d^3)$ per iteration
 
 ## Quasi-Newton Methods
 
 ### DFP
 
-* Rank-2 update satisfying the secant condition
-* Requires smooth objective and line search
-* Local **superlinear convergence**
-* Exact convergence in fewer than $d$ iterations for quadratic problems
-* Cost: $O(d^2)$ time and memory
+#### Update rule
 
+Rank-2 update approximating the inverse Hessian and satisfying the secant condition.
+
+#### Properties
+
+* Smooth objective + line search
+* Local superlinear convergence
+* Cost: $\mathcal{O}(d^2)$
 
 ### BFGS
 
-* More numerically stable than DFP
-* Robust with inexact line search (Wolfe conditions)
-* Local superlinear convergence
-* Cost: $O(d^2)$
+#### Update rule
 
+Improved rank-2 update with better numerical stability.
+
+#### Properties
+
+* Robust with inexact line search
+* Local superlinear convergence
+* Cost: $\mathcal{O}(d^2)$
 
 ### L-BFGS
 
-* Limited-memory version of BFGS
-* Stores last $m \ll d$ curvature pairs
-* No finite-step property
-* Cost: $O(md)$
-* Widely used in large-scale ML
+#### Update rule
 
+Limited-memory BFGS using the last $m \ll d$ curvature pairs.
+
+#### Properties
+
+* Scalable to large dimensions
+* No finite-step property
+* Cost: $\mathcal{O}(md)$
 
 ## Conjugate Gradient (CG)
 
 ### Problem
 
-Solve linear systems
+Solve
 
 $$
 Ax = b, \quad A \succ 0.
 $$
 
+### Update rule
+
+Iterative construction of $A$-conjugate directions using gradient information.
+
 ### Properties
 
-* Iterative, matrix-free method (only needs matrix-vector products)
-* Search directions depend on all previous gradients
+* Matrix-free
 * Exact solution in at most $d$ steps (exact arithmetic)
-
 
 ## Coordinate Descent Methods
 
-### Exact Coordinate Gradient Descent
+### Exact Coordinate Descent
+
+#### Update rule
+
+At iteration $k$, minimize $f$ exactly with respect to one coordinate.
 
 #### Assumptions
 
 * $f$ continuously differentiable
 * strictly convex
-* admits a unique minimizer $x^*$
-
-#### Method
-
-At each iteration, exactly minimize $f$ with respect to one coordinate.
 
 #### Convergence
 
-Global convergence to $x^*$.
-
+Global convergence to the unique minimizer $x^{ * }$.
 
 ### Randomized Coordinate Descent
 
-If coordinate $i_{k+1}$ is sampled uniformly:
+### Update rule
+
+Select coordinate $i_{k+1}$ uniformly and update only that coordinate.
+
+### Convergence
 
 $$
-\mathbb{P}(i_{k+1} = i) = \frac{1}{n},
-$$
-
-then:
-
-$$
-F(x_k) - F(x^*) =
+F(x_k) - F(x^{ * }) =
 \begin{cases}
-\mathcal{O}\left(\frac{1}{k}\right) & \text{convex case}, \
-\mathcal{O}\left(\left(1 - \frac{\mu}{nL}\right)^k\right) & \text{strongly convex case}.
+\mathcal{O}\left(\frac{1}{k}\right), & \text{convex}, \
+\mathcal{O}\left(\left(1 - \frac{\mu}{nL}\right)^k\right), & \text{strongly convex}.
 \end{cases}
 $$
-
-#### Complexity
-
-* One full pass over coordinates ≈ one GD iteration
-* $\text{CCD} = O(\text{GD} / n)$
-
 
 ## Proximal Coordinate Descent
 
 ### Problem
 
-$$F(x) = f(x) + g(x)$$
+$$
+F(x) = f(x) + g(x),
+$$
+with $f$ smooth and $g$ separable.
 
-where:
-* $f$ convex and differentiable
-* $\nabla f$ coordinate-wise Lipschitz with constants $L_i$
-* $g$ convex and separable
+### Update rule
+
+Apply a proximal step on a single randomly selected coordinate.
 
 ### Convergence
 
-With uniform random coordinate sampling:
-
 $$
-\mathcal{O}\left(\frac{1}{k}\right) \quad \text{(convex)}
-$$
-
-$$
-\mathcal{O}\left(\left(1 - \frac{\mu}{nL_{\max}}\right)^k\right) \quad \text{(strongly convex)}.
+\mathcal{O}\left(\frac{1}{k}\right)
+\quad \text{(convex)},
+\qquad
+\mathcal{O}\left(\left(1 - \frac{\mu}{nL_{\max}}\right)^k\right)
+\quad \text{(strongly convex)}.
 $$
 
